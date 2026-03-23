@@ -1,147 +1,92 @@
-#include "trafficSignal.h"
+#include "trafficPatterns.h"
 #include <iostream>
-#include <iomanip>
 using namespace std;
 
-TrafficSignal::TrafficSignal() {
-    currentLane = nullptr;
-    currentState = RED;
-    minGreenDuration = 15;
-    maxGreenDuration = 60;
-    yellowDuration = 5;
-    redDuration = 2;
-    elapsedTime = 0;
+TrafficPattern::TrafficPattern() {
+    currentPeriod = MIDDAY;
 }
 
-TrafficSignal::TrafficSignal(int minGreen, int maxGreen, int yellow) {
-    currentLane = nullptr;
-    currentState = RED;
-    minGreenDuration = minGreen;
-    maxGreenDuration = maxGreen;
-    yellowDuration = yellow;
-    redDuration = 2;
-    elapsedTime = 0;
+TrafficPattern::TrafficPattern(TimeOfDay period) {
+    currentPeriod = period;
 }
 
-string TrafficSignal::getStateName(SignalState state) const {
-    switch(state) {
-        case GREEN: return "GREEN";
-        case YELLOW: return "YELLOW";
-        case RED: return "RED";
-        default: return "UNKNOWN";
+int TrafficPattern::getVehicleRate(string laneName) const {
+    if (currentPeriod == MORNING_RUSH) {
+        if (laneName == "North") return rand() % 3 + 4;
+        if (laneName == "East") return rand() % 3 + 4;
+        if (laneName == "South") return rand() % 2 + 1;
+        if (laneName == "West") return rand() % 2 + 1;
+    }
+    else if (currentPeriod == EVENING_RUSH) {
+        if (laneName == "North") return rand() % 2 + 1;
+        if (laneName == "East") return rand() % 2 + 1;
+        if (laneName == "South") return rand() % 3 + 4;
+        if (laneName == "West") return rand() % 3 + 4;
+    }
+    else if (currentPeriod == MIDDAY) {
+        return rand() % 3 + 2;
+    }
+    else if (currentPeriod == NIGHT) {
+        return rand() % 2;
+    }
+    
+    return rand() % 3;
+}
+
+double TrafficPattern::getEmergencyProbability() const {
+    if (currentPeriod == MORNING_RUSH || currentPeriod == EVENING_RUSH) {
+        return 0.03;
+    }
+    return 0.01;
+}
+
+void TrafficPattern::setPeriod(TimeOfDay period) {
+    currentPeriod = period;
+}
+
+TimeOfDay TrafficPattern::getCurrentPeriod() const {
+    return currentPeriod;
+}
+
+string TrafficPattern::getPeriodName() const {
+    switch(currentPeriod) {
+        case MORNING_RUSH: return "Morning Rush Hour (7-9 AM)";
+        case MIDDAY: return "Midday Regular Traffic (12-2 PM)";
+        case EVENING_RUSH: return "Evening Rush Hour (5-7 PM)";
+        case NIGHT: return "Night Time (10 PM-6 AM)";
+        default: return "Unknown";
     }
 }
 
-string TrafficSignal::getSignalSymbol() const {
-    switch(currentState) {
-        case GREEN: return "🟢";
-        case YELLOW: return "🟡";
-        case RED: return "🔴";
-        default: return "⚪";
-    }
-}
-
-// ADAPTIVE TIMING: Calculate optimal green time based on queue
-int TrafficSignal::calculateOptimalGreenTime(Lane* lane) const {
-    if (!lane) return minGreenDuration;
+void TrafficPattern::displayPattern() const {
+    cout << "\nCurrent Traffic Pattern: " << getPeriodName() << endl;
     
-    int vehicleCount = lane->getVehicleCount();
+    cout << "\nExpected Traffic Density:" << endl;
+    cout << "  North: ";
+    if (currentPeriod == MORNING_RUSH) cout << "HIGH";
+    else if (currentPeriod == EVENING_RUSH) cout << "LOW";
+    else if (currentPeriod == MIDDAY) cout << "MEDIUM";
+    else cout << "VERY LOW";
+    cout << endl;
     
-    // Formula: 10 seconds base + 2 seconds per vehicle
-    // Assumption: 1 vehicle passes every 2 seconds
-    int optimalTime = 10 + (vehicleCount * 2);
+    cout << "  East:  ";
+    if (currentPeriod == MORNING_RUSH) cout << "HIGH";
+    else if (currentPeriod == EVENING_RUSH) cout << "LOW";
+    else if (currentPeriod == MIDDAY) cout << "MEDIUM";
+    else cout << "VERY LOW";
+    cout << endl;
     
-    // Clamp between min and max
-    if (optimalTime < minGreenDuration) return minGreenDuration;
-    if (optimalTime > maxGreenDuration) return maxGreenDuration;
+    cout << "  South: ";
+    if (currentPeriod == EVENING_RUSH) cout << "HIGH";
+    else if (currentPeriod == MORNING_RUSH) cout << "LOW";
+    else if (currentPeriod == MIDDAY) cout << "MEDIUM";
+    else cout << "VERY LOW";
+    cout << endl;
     
-    return optimalTime;
-}
-
-void TrafficSignal::setGreenSignal(Lane* lane, int duration) {
-    currentLane = lane;
-    currentState = GREEN;
-    elapsedTime = 0;
-    
-    cout << "\n🟢 GREEN Signal: " << lane->getLaneName() 
-         << " (Duration: " << duration << "s)" << endl;
-}
-
-void TrafficSignal::setYellowSignal() {
-    currentState = YELLOW;
-    elapsedTime = 0;
-    cout << "🟡 YELLOW Signal" << endl;
-}
-
-void TrafficSignal::setRedSignal() {
-    currentState = RED;
-    elapsedTime = 0;
-    cout << "🔴 RED Signal" << endl;
-}
-
-void TrafficSignal::updateSignal(int timeStep) {
-    elapsedTime += timeStep;
-}
-
-SignalState TrafficSignal::getCurrentState() const {
-    return currentState;
-}
-
-Lane* TrafficSignal::getCurrentLane() const {
-    return currentLane;
-}
-
-int TrafficSignal::getMinGreenDuration() const {
-    return minGreenDuration;
-}
-
-int TrafficSignal::getMaxGreenDuration() const {
-    return maxGreenDuration;
-}
-
-int TrafficSignal::getElapsedTime() const {
-    return elapsedTime;
-}
-
-// Clear vehicles from lane during green signal
-int TrafficSignal::clearVehicles(Lane* lane, int duration) {
-    if (!lane) return 0;
-    
-    // Assumption: 1 vehicle passes every 2 seconds
-    int maxVehicles = duration / 2;
-    int vehiclesCleared = 0;
-    
-    cout << "  🚗 Clearing vehicles..." << endl;
-    
-    for (int i = 0; i < maxVehicles && !lane->isEmpty(); i++) {
-        Vehicle v = lane->removeVehicle();
-        vehiclesCleared++;
-        
-        // Show emergency vehicles being cleared
-        if (v.isEmergency()) {
-            cout << "  🚨 Emergency vehicle cleared!" << endl;
-        }
-    }
-    
-    cout << "  ✅ Cleared " << vehiclesCleared << " vehicles from " 
-         << lane->getLaneName() << endl;
-    cout << "  ⏳ " << lane->getVehicleCount() << " vehicles still waiting" << endl;
-    
-    return vehiclesCleared;
-}
-
-void TrafficSignal::displaySignalStatus() const {
-    cout << "\n┌─────────────────────────────────────┐" << endl;
-    cout << "│    TRAFFIC SIGNAL STATUS            │" << endl;
-    cout << "├─────────────────────────────────────┤" << endl;
-    
-    if (currentLane) {
-        cout << "│ Lane:     " << setw(24) << left << currentLane->getLaneName() << "│" << endl;
-    } else {
-        cout << "│ Lane:     " << setw(24) << left << "None" << "│" << endl;
-    }
-    
-    cout << "│ State:    " << setw(24) << left << (getSignalSymbol() + " " + getStateName(currentState)) << "│" << endl;
-    cout << "│ Elapsed:  " << setw(24) << left << (to_string(elapsedTime) + "s") << "│" << endl;
-    cout << "└─────────────────────────────────────┘\n" << endl;
+    cout << "  West:  ";
+    if (currentPeriod == EVENING_RUSH) cout << "HIGH";
+    else if (currentPeriod == MORNING_RUSH) cout << "LOW";
+    else if (currentPeriod == MIDDAY) cout << "MEDIUM";
+    else cout << "VERY LOW";
+    cout << endl;
 }
