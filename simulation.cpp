@@ -235,3 +235,88 @@ void Simulation::runSimulation(int numCycles) {
     displayStatistics();
     analyzeComplexity();
 }
+
+void Simulation::displayStatistics() const {
+    cout << "\n╔═══════════════════════════════════════════════════════════╗" << endl;
+    cout << "║              SIMULATION STATISTICS                         ║" << endl;
+    cout << "╠═══════════════════════════════════════════════════════════╣" << endl;
+    
+    cout << "║ Total Cycles: " << setw(40) << totalCycles << " ║" << endl;
+    cout << "║ Total Vehicles Generated: " << setw(32) << totalVehiclesGenerated << " ║" << endl;
+    cout << "║ Total Vehicles Processed: " << setw(32) << totalVehiclesProcessed << " ║" << endl;
+    
+    double avgWait = (totalVehiclesProcessed > 0) ? (double)totalWaitingTime / totalVehiclesProcessed : 0.0;
+    cout << "║ Average Waiting Time: " << fixed << setprecision(2) << setw(35) << avgWait << "s ║" << endl;
+    
+    cout << "║ Total Simulation Time: " << setw(35) << currentTime << "s ║" << endl;
+    cout << "╚═══════════════════════════════════════════════════════════╝" << endl;
+}
+
+void Simulation::analyzeComplexity() const {
+    cout << "\n╔═══════════════════════════════════════════════════════════╗" << endl;
+    cout << "║          ALGORITHM COMPLEXITY ANALYSIS                    ║" << endl;
+    cout << "╠═══════════════════════════════════════════════════════════╣" << endl;
+    
+    cout << "║ Algorithm: GREEDY (Priority-based Lane Selection)         ║" << endl;
+    cout << "║                                                           ║" << endl;
+    
+    int totalVehicles = totalVehiclesGenerated;
+    int n = lanes.size();
+    
+    cout << "║ Time Complexity:                                          ║" << endl;
+    cout << "║   Per Cycle: O(n * m) where n=lanes, m=avg vehicles      ║" << endl;
+    cout << "║   Total: O(cycles * n * m) = O(" << totalCycles 
+         << " * " << n << " * avg_vehicles)               ║" << endl;
+    
+    cout << "║                                                           ║" << endl;
+    cout << "║ Space Complexity: O(n * m + log m)                       ║" << endl;
+    cout << "║   - Lanes storage: O(n)                                  ║" << endl;
+    cout << "║   - Vehicles per lane: O(m)                              ║" << endl;
+    cout << "║   - Priority Queue: O(log m)                             ║" << endl;
+    
+    cout << "\n║ Performance Metrics:                                      ║" << endl;
+    cout << "║   Total Cycles Run: " << setw(35) << totalCycles << " ║" << endl;
+    cout << "║   Vehicles Processed: " << setw(33) << totalVehiclesProcessed << " ║" << endl;
+    cout << "║   Processing Efficiency: " << fixed << setprecision(2) 
+         << setw(29) << (totalVehiclesProcessed * 100.0 / totalVehiclesGenerated) << "% ║" << endl;
+    
+    cout << "╚═══════════════════════════════════════════════════════════╝" << endl;
+}
+
+double Simulation::getAverageWaitingTime() const {
+    if (totalVehiclesProcessed > 0) {
+        return (double)totalWaitingTime / totalVehiclesProcessed;
+    }
+    return 0.0;
+}
+
+int Simulation::getTotalProcessed() const {
+    return totalVehiclesProcessed;
+}
+
+void Simulation::runFixedCycle(Lane* lane, int duration) {
+    if (!lane) {
+        cout << "❌ Invalid lane!" << endl;
+        return;
+    }
+    
+    cout << "\n╔═══════════════════════════════════════════════════════════╗" << endl;
+    cout << "║ RUNNING FIXED CYCLE FOR LANE: " << setw(26) << lane->getLaneName() << " ║" << endl;
+    cout << "║ DURATION: " << setw(49) << duration << "s ║" << endl;
+    cout << "╚═══════════════════════════════════════════════════════════╝" << endl;
+    
+    signal.setGreenSignal(lane, duration);
+    
+    cout << "\n📊 Lane Status before cycle:" << endl;
+    cout << "   Vehicles waiting: " << lane->getVehicleCount() << endl;
+    cout << "   Average wait time: " << lane->getAverageWaitingTime() << "s" << endl;
+    
+    int cleared = signal.clearVehicles(lane, duration);
+    totalVehiclesProcessed += cleared;
+    
+    cout << "\n✅ Cycle Complete!" << endl;
+    cout << "   Vehicles cleared: " << cleared << endl;
+    cout << "   Remaining: " << lane->getVehicleCount() << endl;
+    
+    signal.displaySignalStatus();
+}
