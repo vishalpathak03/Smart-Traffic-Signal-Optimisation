@@ -1,5 +1,5 @@
-#ifndef VEHICHLE_H
-#define VEHICHLE_H
+#ifndef VEHICLE_H
+#define VEHICLE_H
 
 #include <string>
 #include <ctime>
