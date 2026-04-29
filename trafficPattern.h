@@ -15,18 +15,18 @@ enum TimeOfDay {
 class TrafficPattern {
 private:
     TimeOfDay currentPeriod;
-    
+
 public:
     TrafficPattern();
     TrafficPattern(TimeOfDay period);
-    
+
     int getVehicleRate(string laneName) const;
-    
+
     double getEmergencyProbability() const;
-    
+
     void setPeriod(TimeOfDay period);
     TimeOfDay getCurrentPeriod() const;
-    
+
     void displayPattern() const;
     string getPeriodName() const;
 };
