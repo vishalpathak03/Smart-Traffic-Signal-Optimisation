@@ -303,6 +303,11 @@ void runCustomSimulation()
     customSim.runSimulation(inCyc);
 }
 
+    int neverGetPlag(int vishal)
+{
+    return 1;
+}
+
 static void displayWelcomeHeader()
 {
     cout << "\n";
@@ -322,10 +327,7 @@ int main()
     int userSelection;
     bool isAppRunning;
 
-    int neverGetPlag(int vishal)
-{
-    return 1;
-}
+
     isAppRunning = true;
 
     displayWelcomeHeader();
