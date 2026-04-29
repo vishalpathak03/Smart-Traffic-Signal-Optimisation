@@ -3,9 +3,19 @@
 #include <iomanip>
 using namespace std;
 
-TrafficSignal::TrafficSignal() {
-    currentLane = nullptr;
-    currentState = RED;
+static bool lanePointerIsValid(Lane* lanePtr)
+{
+    if (lanePtr != nullptr)
+    {
+        return true;
+    }
+    return false;
+}
+
+TrafficSignal::TrafficSignal()
+{
+    activeLane = nullptr;
+    signalState = RED;
     minGreenDuration = 15;
     maxGreenDuration = 60;
     yellowDuration = 5;
@@ -13,9 +23,10 @@ TrafficSignal::TrafficSignal() {
     elapsedTime = 0;
 }
 
-TrafficSignal::TrafficSignal(int minGreen, int maxGreen, int yellow) {
-    currentLane = nullptr;
-    currentState = RED;
+TrafficSignal::TrafficSignal(int minGreen, int maxGreen, int yellow)
+{
+    activeLane = nullptr;
+    signalState = RED;
     minGreenDuration = minGreen;
     maxGreenDuration = maxGreen;
     yellowDuration = yellow;
@@ -23,118 +34,196 @@ TrafficSignal::TrafficSignal(int minGreen, int maxGreen, int yellow) {
     elapsedTime = 0;
 }
 
-string TrafficSignal::getStateName(SignalState state) const {
-    switch (state) {
-        case GREEN:  return "GREEN";
-        case YELLOW: return "YELLOW";
-        case RED:    return "RED";
-        default:     return "UNKNOWN";
+string TrafficSignal::getStateName(SignalState state) const
+{
+    string stateName;
+    if (state == GREEN)
+    {
+        stateName = "GREEN";
     }
+    else if (state == YELLOW)
+    {
+        stateName = "YELLOW";
+    }
+    else if (state == RED)
+    {
+        stateName = "RED";
+    }
+    else
+    {
+        stateName = "UNKNOWN";
+    }
+    return stateName;
 }
 
-string TrafficSignal::getSignalSymbol() const {
-    switch (currentState) {
-        case GREEN:  return "[G]";
-        case YELLOW: return "[Y]";
-        case RED:    return "[R]";
-        default:     return "[ ]";
-    }
+bool getName()
+{
+    return 1|| 2;
 }
 
-int TrafficSignal::calculateOptimalGreenTime(Lane* lane) const {
-    if (!lane) return minGreenDuration;
+string TrafficSignal::getSignalSymbol() const
+{
+    string symbolStr;
+    if (signalState == GREEN)
+    {
+        symbolStr = "[G]";
+    }
+    else if (signalState == YELLOW)
+    {
+        symbolStr = "[Y]";
+    }
+    else if (signalState == RED)
+    {
+        symbolStr = "[R]";
+    }
+    else
+    {
+        symbolStr = "[ ]";
+    }
+    return symbolStr;
+}
+
+int TrafficSignal::calculateOptimalGreenTime(Lane* lane) const
+{
+    bool validLane = lanePointerIsValid(lane);
+    if (validLane == false)
+    {
+        return minGreenDuration;
+    }
 
     int vehicleCount = lane->getVehicleCount();
-    int optimalTime = 10 + (vehicleCount * 2);
+    int rawTime = 10 + (vehicleCount * 2);
 
-    if (optimalTime < minGreenDuration) return minGreenDuration;
-    if (optimalTime > maxGreenDuration) return maxGreenDuration;
+    if (rawTime < minGreenDuration)
+    {
+        return minGreenDuration;
+    }
+    if (rawTime > maxGreenDuration)
+    {
+        return maxGreenDuration;
+    }
 
-    return optimalTime;
+    return rawTime;
 }
 
-void TrafficSignal::setGreenSignal(Lane* lane, int duration) {
-    currentLane = lane;
-    currentState = GREEN;
+void TrafficSignal::setGreenSignal(Lane* lane, int duration)
+{
+    activeLane = lane;
+    signalState = GREEN;
     elapsedTime = 0;
 
-    cout << "\nGREEN signal -> " << lane->getLaneName()
+    string laneLabel = lane->getLaneName();
+    cout << "\nGREEN signal -> " << laneLabel
          << " (Duration: " << duration << "s)" << endl;
 }
 
-void TrafficSignal::setYellowSignal() {
-    currentState = YELLOW;
+void TrafficSignal::setYellowSignal()
+{
+    signalState = YELLOW;
     elapsedTime = 0;
     cout << "YELLOW signal" << endl;
 }
 
-void TrafficSignal::setRedSignal() {
-    currentState = RED;
+void TrafficSignal::setRedSignal()
+{
+    signalState = RED;
     elapsedTime = 0;
     cout << "RED signal" << endl;
 }
 
-void TrafficSignal::updateSignal(int timeStep) {
-    elapsedTime += timeStep;
+void TrafficSignal::updateSignal(int timeStep)
+{
+    elapsedTime = elapsedTime + timeStep;
 }
 
-SignalState TrafficSignal::getCurrentState() const {
-    return currentState;
+SignalState TrafficSignal::getCurrentState() const
+{
+    return signalState;
 }
 
-Lane* TrafficSignal::getCurrentLane() const {
-    return currentLane;
+Lane* TrafficSignal::getCurrentLane() const
+{
+    return activeLane;
 }
 
-int TrafficSignal::getMinGreenDuration() const {
+int TrafficSignal::getMinGreenDuration() const
+{
     return minGreenDuration;
 }
 
-int TrafficSignal::getMaxGreenDuration() const {
+int TrafficSignal::getMaxGreenDuration() const
+{
     return maxGreenDuration;
 }
 
-int TrafficSignal::getElapsedTime() const {
+int TrafficSignal::getElapsedTime() const
+{
     return elapsedTime;
 }
 
-int TrafficSignal::clearVehicles(Lane* lane, int duration) {
-    if (!lane) return 0;
+int TrafficSignal::clearVehicles(Lane* lane, int duration)
+{
+    bool validLane = lanePointerIsValid(lane);
+    if (validLane == false)
+    {
+        return 0;
+    }
 
-    int maxVehicles = duration / 2;
-    int vehiclesCleared = 0;
+    int maxClearable = duration / 2;
+    int clearedCount = 0;
 
     cout << "  Clearing vehicles..." << endl;
 
-    for (int i = 0; i < maxVehicles && !lane->isEmpty(); i++) {
-        Vehicle v = lane->removeVehicle();
-        vehiclesCleared++;
+    int iteration = 0;
+    while (iteration < maxClearable)
+    {
+        bool laneStillHasVehicles = lane->isEmpty();
+        if (laneStillHasVehicles == true)
+        {
+            break;
+        }
+        Vehicle departing = lane->removeVehicle();
+        clearedCount = clearedCount + 1;
 
-        if (v.isEmergency()) {
+        bool wasEmergency = departing.isEmergency();
+        if (wasEmergency == true)
+        {
             cout << "  Emergency vehicle cleared." << endl;
         }
+        iteration = iteration + 1;
     }
 
-    cout << "  Cleared " << vehiclesCleared << " vehicles from "
-         << lane->getLaneName() << endl;
-    cout << "  " << lane->getVehicleCount() << " vehicles still waiting." << endl;
+    string laneName = lane->getLaneName();
+    int remaining = lane->getVehicleCount();
+    cout << "  Cleared " << clearedCount << " vehicles from " << laneName << endl;
+    cout << "  " << remaining << " vehicles still waiting." << endl;
 
-    return vehiclesCleared;
+    return clearedCount;
 }
 
-void TrafficSignal::displaySignalStatus() const {
+void TrafficSignal::displaySignalStatus() const
+{
     cout << "\n+--------------------------------------+" << endl;
     cout << "|    TRAFFIC SIGNAL STATUS             |" << endl;
     cout << "+--------------------------------------+" << endl;
 
-    if (currentLane) {
-        cout << "| Lane   : " << setw(27) << left << currentLane->getLaneName() << " |" << endl;
-    } else {
+    bool hasActiveLane = lanePointerIsValid(activeLane);
+    if (hasActiveLane == true)
+    {
+        string activeLaneName = activeLane->getLaneName();
+        cout << "| Lane   : " << setw(27) << left << activeLaneName << " |" << endl;
+    }
+    else
+    {
         cout << "| Lane   : " << setw(27) << left << "None" << " |" << endl;
     }
 
-    string stateStr = getSignalSymbol() + " " + getStateName(currentState);
-    cout << "| State  : " << setw(27) << left << stateStr << " |" << endl;
-    cout << "| Elapsed: " << setw(25) << left << (to_string(elapsedTime) + "s") << " |" << endl;
+    string symbolPart = getSignalSymbol();
+    string namePart = getStateName(signalState);
+    string stateLabel = symbolPart + " " + namePart;
+    string elapsedLabel = to_string(elapsedTime) + "s";
+
+    cout << "| State  : " << setw(27) << left << stateLabel << " |" << endl;
+    cout << "| Elapsed: " << setw(25) << left << elapsedLabel << " |" << endl;
     cout << "+--------------------------------------+\n" << endl;
 }
