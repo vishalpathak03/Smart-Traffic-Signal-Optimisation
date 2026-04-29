@@ -13,8 +13,8 @@ enum SignalState {
 
 class TrafficSignal {
 private:
-    Lane* currentLane;
-    SignalState currentState;
+    Lane* activeLane;
+    SignalState signalState;
     int minGreenDuration;
     int maxGreenDuration;
     int yellowDuration;
