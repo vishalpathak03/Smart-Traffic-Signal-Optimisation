@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Traffic Signal Optimisation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        #emergency-banner {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 9999;
+            background: linear-gradient(90deg, #b71c1c, #d65252);
+            color: #fff;
+            padding: 14px 24px;
+            font-family: "Space Grotesk", sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-align: center;
+            animation: slideDown 0.3s ease;
+        }
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to   { transform: translateY(0);     opacity: 1; }
+        }
+        .lane-card.alert { animation: pulse-red 0.8s ease-in-out 2; }
+        @keyframes pulse-red {
+            0%   { box-shadow: 0 0 0 0 rgba(214,82,82,0.6); }
+            50%  { box-shadow: 0 0 0 10px rgba(214,82,82,0); }
+            100% { box-shadow: 0 0 0 0 rgba(214,82,82,0); }
+        }
+        .timeline-emergency {
+            background: rgba(183,28,28,0.12);
+            border-left: 3px solid #d65252;
+            padding-left: 8px;
+        }
+        /* Simulation control bar inside the left panel */
+        .sim-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .sim-controls .button {
+            flex: 1;
+            text-align: center;
+            font-size: 0.95rem;
+            padding: 13px 10px;
+        }
+        .sim-controls .button.primary {
+            background: linear-gradient(135deg, #0f8b8d, #2f6fed);
+        }
+        .emrg-tag {
+            display: inline-block;
+            background: #b71c1c;
+            color: #fff;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 999px;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+
+        /* Step summary panel */
+        #step-summary {
+            display: none;
+            margin-top: 16px;
+            padding: 16px 18px;
+            border-radius: 10px;
+            border: 1px solid rgba(15,139,141,0.3);
+            background: rgba(15,139,141,0.07);
+            animation: fadeIn 0.4s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        #step-summary.emergency-step {
+            border-color: rgba(214,82,82,0.4);
+            background: rgba(214,82,82,0.07);
+        }
+        #step-summary h4 {
+            font-family: "Space Grotesk", sans-serif;
+            font-size: 0.95rem;
+            margin: 0 0 10px;
+            color: #17212a;
+        }
+        .step-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.88rem;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(23,33,42,0.07);
+            color: #444;
+        }
+        .step-row:last-child { border-bottom: none; }
+        .step-row strong { color: #17212a; }
+        .step-reason {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #555;
+            line-height: 1.55;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div id="emergency-banner"></div>
+
+    <div class="page-shell">
+        <header class="masthead">
+            <div class="brand-bar">
+                <div>
+                    <h1>Adaptive traffic orchestration for a four-way junction.</h1>
+                </div>
+                <div class="brand-pills">
+                    <button class="pill-button" id="priority-pulse" type="button">Priority pulse (3 cycles)</button>
+                    <button class="pill-button" id="auto-clear" type="button">Auto-clear (2s/cycle)</button>
+                    <button class="pill-button" id="capacity-test" type="button">Capacity test (East -50%)</button>
+                </div>
+            </div>
+            <div class="hero-grid">
+                <section class="hero-panel overview-panel">
+                    <p class="section-kicker">Network overview</p>
+                    <h2>Shape the intersection in real time and watch the controller rebalance pressure across every approach.</h2>
+                    <p class="lede">
+                        Emergency vehicles are detected <strong>automatically</strong> by the system using probability
+                        (8% per lane during rush hours, 4% at midday, 2% at night).
+                        When one is detected, the greedy algorithm is bypassed and that lane receives immediate green priority.
+                    </p>
+                    <div class="hero-actions">
+                        <button class="button secondary" id="run-cycle">Advance cycle</button>
+                        <button class="button secondary" id="reset-state">Reset network</button>
+                    </div>
+                </section>
+                <section class="hero-panel top-metrics">
+                    <div class="metric-card emphasis">
+                        <span class="metric-label">Current allocation</span>
+                        <strong id="selected-lane">--</strong>
+                        <p id="signal-caption">Waiting for first cycle</p>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Cycles completed</span>
+                        <strong id="cycle-count">0</strong>
+                        <p>Total greedy selections made</p>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Vehicles in network</span>
+                        <strong id="total-vehicles">--</strong>
+                        <p id="pattern-detail">Select a scenario to begin</p>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Emergency overrides</span>
+                        <strong id="emergency-count" style="color:#d65252">0</strong>
+                        <p>Auto-detected, greedy bypassed</p>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Adaptive green window</span>
+                        <strong id="green-time">--</strong>
+                        <p id="active-pattern">Select a scenario</p>
+                    </div>
+                </section>
+            </div>
+        </header>
+        <main class="dashboard">
+            <section class="panel control-panel">
+                <div class="panel-heading">
+                    <div>
+                        <p class="section-kicker">Scenario studio</p>
+                        <h2>Traffic patterns</h2>
+                    </div>
+                    <p>Choose a pressure profile. Emergency vehicles appear automatically — no manual trigger needed.</p>
+                </div>
+
+                <!-- Primary simulation controls — always visible -->
+                <div class="sim-controls">
+                    <button class="button primary" id="next-cycle-btn">Next Cycle</button>
+                    <button class="button secondary" id="auto-clear-btn">Auto-clear (2s/cycle)</button>
+                </div>
+
+                <div class="scenario-grid" id="scenario-grid"></div>
+                <div class="toggle-cluster">
+                    <label class="toggle">
+                        <input type="checkbox" id="blockage-toggle">
+                        <span>Reduce East lane capacity by 50 percent (blockage simulation)</span>
+                    </label>
+                </div>
+
+                <!-- Step-by-step summary shown after each manual cycle click -->
+                <div id="step-summary">
+                    <h4 id="step-title">Cycle result</h4>
+                    <div class="step-row"><span>Lane selected</span><strong id="step-lane">--</strong></div>
+                    <div class="step-row"><span>Reason</span><strong id="step-reason-type">--</strong></div>
+                    <div class="step-row"><span>Priority score</span><strong id="step-priority">--</strong></div>
+                    <div class="step-row"><span>Green time given</span><strong id="step-green">--</strong></div>
+                    <div class="step-row"><span>Vehicles cleared</span><strong id="step-cleared">--</strong></div>
+                    <div class="step-row"><span>Vehicles remaining</span><strong id="step-remaining">--</strong></div>
+                    <p class="step-reason" id="step-explanation"></p>
+                </div>
+
+                <div class="status-strip" style="margin-top:14px">
+                    <div class="status-chip">
+                        <span class="status-dot live"></span>
+                        <span id="network-state">Priority controller active — advance a cycle to start</span>
+                    </div>
+                    <div class="status-chip">
+                        <span class="status-dot warning"></span>
+                        <span id="network-alert">No active incident</span>
+                    </div>
+                </div>
+            </section>
+            <section class="panel intersection-panel">
+                <div class="panel-heading split">
+                    <div>
+                        <p class="section-kicker">Intersection map</p>
+                        <h2>Signal field</h2>
+                    </div>
+                    <div class="signal-legend">
+                        <span><i class="legend-dot green"></i>Allocated</span>
+                        <span><i class="legend-dot amber"></i>Constrained</span>
+                        <span><i class="legend-dot red"></i>Emergency</span>
+                    </div>
+                </div>
+                <div class="intersection" id="intersection">
+                    <div class="lane-card north" data-lane="North">
+                        <div class="lane-head"><span class="lane-name">North</span><span class="lane-badge" id="badge-North">--</span></div>
+                        <strong class="lane-count" id="count-North">0</strong>
+                        <span class="lane-meta" id="meta-North">Wait 0s | Priority 0.00 | Cap 50</span>
+                        <div class="lane-bar"><span id="bar-North"></span></div>
+                    </div>
+                    <div class="lane-card west" data-lane="West">
+                        <div class="lane-head"><span class="lane-name">West</span><span class="lane-badge" id="badge-West">--</span></div>
+                        <strong class="lane-count" id="count-West">0</strong>
+                        <span class="lane-meta" id="meta-West">Wait 0s | Priority 0.00 | Cap 50</span>
+                        <div class="lane-bar"><span id="bar-West"></span></div>
+                    </div>
+                    <div class="signal-core">
+                        <div class="signal-stack" id="signal-stack">
+                            <span class="signal-dot red"></span>
+                            <span class="signal-dot yellow"></span>
+                            <span class="signal-dot green active"></span>
+                        </div>
+                        <p class="signal-title">Live allocation</p>
+                        <p id="signal-core-text">Waiting for first cycle</p>
+                    </div>
+                    <div class="lane-card east" data-lane="East">
+                        <div class="lane-head"><span class="lane-name">East</span><span class="lane-badge" id="badge-East">--</span></div>
+                        <strong class="lane-count" id="count-East">0</strong>
+                        <span class="lane-meta" id="meta-East">Wait 0s | Priority 0.00 | Cap 50</span>
+                        <div class="lane-bar"><span id="bar-East"></span></div>
+                    </div>
+                    <div class="lane-card south" data-lane="South">
+                        <div class="lane-head"><span class="lane-name">South</span><span class="lane-badge" id="badge-South">--</span></div>
+                        <strong class="lane-count" id="count-South">0</strong>
+                        <span class="lane-meta" id="meta-South">Wait 0s | Priority 0.00 | Cap 50</span>
+                        <div class="lane-bar"><span id="bar-South"></span></div>
+                    </div>
+                </div>
+            </section>
+            <section class="panel analytics-panel">
+                <div class="panel-heading">
+                    <div>
+                        <p class="section-kicker">Performance layer</p>
+                        <h2>Operational analytics</h2>
+                    </div>
+                    <p>A wider view of throughput, pressure, and the current optimization logic.</p>
+                </div>
+                <div class="analytics-grid">
+                    <div class="metric-card dark"><span class="metric-label">Vehicles processed</span><strong id="processed-count">0</strong><p>Cumulative clearances across all cycles</p></div>
+                    <div class="metric-card dark"><span class="metric-label">Average waiting time</span><strong id="average-wait">0.0s</strong><p>Weighted across all current queues</p></div>
+                    <div class="metric-card dark"><span class="metric-label">Greedy throughput (this cycle)</span><strong id="greedy-estimate">0 vehicles</strong><p>Vehicles expected to clear in this window</p></div>
+                    <div class="metric-card dark"><span class="metric-label">Fixed-time baseline</span><strong id="fixed-estimate">15 vehicles</strong><p>Round-robin estimate using a 30 second phase</p></div>
+                </div>
+                <div class="insight-row">
+                    <div class="insight-block formula">
+                        <p class="formula-title">Selection logic</p>
+                        <code>priority = (vehicles x average wait) / effective capacity</code>
+                        <p id="explanation">Select a scenario and advance a cycle to see the algorithm explanation here.</p>
+                    </div>
+                    <div class="insight-block">
+                        <p class="formula-title">Cycle record (last 8)</p>
+                        <div class="timeline" id="timeline"></div>
+                    </div>
+                </div>
+            </section>
+            <section class="panel table-panel">
+                <div class="panel-heading">
+                    <div>
+                        <p class="section-kicker">Lane diagnostics</p>
+                        <h2>Approach health table</h2>
+                    </div>
+                    <p>Each lane combines queue depth, observed delay, computed priority, and available capacity.</p>
+                </div>
+                <div class="lane-table" id="lane-table"></div>
+            </section>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
