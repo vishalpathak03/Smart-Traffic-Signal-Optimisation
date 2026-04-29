@@ -18,8 +18,7 @@ class Vehicle
         int vehicleID;
         time_t arrivalTime;
         int waitingTime;
-        VehicleType type;
-
+        VehicleType vehicleCategory;
 
     public:
         Vehicle(int id, VehicleType vType = REGULAR);
@@ -30,7 +29,6 @@ class Vehicle
         int getWaitingTime() const;
         VehicleType getType() const;
 
-
         bool isEmergency() const;
         bool isPublicTransport() const;
         int getPriorityMultiplier() const;
@@ -39,7 +37,6 @@ class Vehicle
 
         void displayVehicle() const;
         string getTypeString() const;
-
 };
 
-# endif
+#endif
