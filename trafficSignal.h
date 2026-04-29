@@ -1,83 +1,49 @@
-#include "vehicle.h"
-#include <bits/stdc++.h>
+#ifndef TRAFFIC_SIGNAL_H
+#define TRAFFIC_SIGNAL_H
+
+#include "lane.h"
+#include <string>
 using namespace std;
 
-Vehicle::Vehicle(int id, VehicleType vType)
-{
-    vehicleID = id;
-    arrivalTime = time(0);
-    waitingTime = 0;
-    type = vType;
-}
+enum SignalState {
+    RED,
+    YELLOW,
+    GREEN
+};
 
-Vehicle::Vehicle(int id, time_t arrival, VehicleType vType)
-{
-    vehicleID = id;
-    arrivalTime = arrival;
-    waitingTime = 0;
-    type = vType;
-}
+class TrafficSignal {
+private:
+    Lane* currentLane;
+    SignalState currentState;
+    int minGreenDuration;
+    int maxGreenDuration;
+    int yellowDuration;
+    int redDuration;
+    int elapsedTime;
 
-int Vehicle::getVehicleID() const
-{
-    return vehicleID;
-}
+    string getStateName(SignalState state) const;
 
-time_t Vehicle::getArrivalTime() const
-{
-    return arrivalTime;
-}
+public:
+    TrafficSignal();
+    TrafficSignal(int minGreen, int maxGreen, int yellow);
 
-int Vehicle::getWaitingTime() const
-{
-    return waitingTime;
-}
+    void setGreenSignal(Lane* lane, int duration);
+    void setYellowSignal();
+    void setRedSignal();
+    void updateSignal(int timeStep);
 
-VehicleType Vehicle::getType() const
-{
-    return type;
-}
+    int calculateOptimalGreenTime(Lane* lane) const;
 
-bool Vehicle::isEmergency() const
-{
-    return type == EMERGENCY;
-}
+    SignalState getCurrentState() const;
+    Lane* getCurrentLane() const;
+    int getMinGreenDuration() const;
+    int getMaxGreenDuration() const;
+    int getElapsedTime() const;
 
-bool Vehicle::isPublicTransport() const
-{
-    return type == PUBLIC_TRANSPORT;
-}
+    int clearVehicles(Lane* lane, int duration);
 
-int Vehicle::getPriorityMultiplier() const
-{
-    if (type == EMERGENCY)
-        return 10;
-    else if (type == PUBLIC_TRANSPORT)
-        return 2;
-    else
-        return 1;
-}
+    void displaySignalStatus() const;
+    string getSignalSymbol() const;
+};
 
-void Vehicle::updateWaitingTime(int currentTime)
-{
-    waitingTime = currentTime - arrivalTime;
-}
-
-string Vehicle::getTypeString() const 
-{
-    switch(type) {
-        case EMERGENCY: 
-            return "EMERGENCY";
-        case PUBLIC_TRANSPORT: 
-            return "BUS";
-        default: 
-            return "REGULAR";
-    }
-}
-
-void Vehicle::displayVehicle() const
-{
-    cout << "Vehicle ID: " << vehicleID << ", Type: " << getTypeString() 
-         << ", Arrival Time: " << ctime(&arrivalTime) 
-         << ", Waiting Time: " << waitingTime << " seconds" << endl;
-}
+#endif
