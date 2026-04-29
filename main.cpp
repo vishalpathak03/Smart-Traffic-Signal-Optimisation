@@ -4,11 +4,18 @@
 #include "comparison.h"
 using namespace std;
 
-void displayMenu() {
-    cout << "\n+---------------------------------------------------+" << endl;
+static void printMenuSeparator()
+{
+    cout << "+---------------------------------------------------+" << endl;
+}
+
+void displayMenu()
+{
+    cout << "\n";
+    printMenuSeparator();
     cout << "|   TRAFFIC SIGNAL OPTIMIZATION SYSTEM              |" << endl;
     cout << "|   Using Greedy Algorithm (DAA Project)            |" << endl;
-    cout << "+---------------------------------------------------+" << endl;
+    printMenuSeparator();
     cout << "\n1. Run Quick Demo (5 cycles, Morning Rush)" << endl;
     cout << "2. Morning Rush Hour Simulation" << endl;
     cout << "3. Evening Rush Hour Simulation" << endl;
@@ -23,10 +30,12 @@ void displayMenu() {
     cout << "\nEnter choice: ";
 }
 
-void displayAlgorithmInfo() {
-    cout << "\n" << string(65, '=') << endl;
+void displayAlgorithmInfo()
+{
+    string delimStr = string(65, '=');
+    cout << "\n" << delimStr << endl;
     cout << "GREEDY ALGORITHM INFORMATION" << endl;
-    cout << string(65, '=') << endl;
+    cout << delimStr << endl;
 
     cout << "\nStrategy:" << endl;
     cout << "  At each cycle, select the lane with HIGHEST priority" << endl;
@@ -48,175 +57,205 @@ void displayAlgorithmInfo() {
     cout << "  - Emergency vehicles bypass the greedy selection" << endl;
     cout << "  - Safety is always given priority over optimization" << endl;
 
-    cout << "\n" << string(65, '=') << "\n" << endl;
+    cout << "\n" << delimStr << "\n" << endl;
 }
 
-void runQuickDemo() {
+void runQuickDemo()
+{
     cout << "\nRunning Quick Demo (5 cycles, Morning Rush pattern)...\n" << endl;
 
-    Simulation sim;
-    sim.initializeLanes();
-    sim.setSignalTimings(15, 60, 5);
-    sim.setTrafficPattern(MORNING_RUSH);
-    sim.runSimulation(5);
+    Simulation simObj;
+    simObj.initializeLanes();
+    simObj.setSignalTimings(15, 60, 5);
+    simObj.setTrafficPattern(MORNING_RUSH);
+    simObj.runSimulation(5);
 }
 
-void runMorningRush() {
+void runMorningRush()
+{
     cout << "\nMorning Rush Hour Simulation (7-9 AM)" << endl;
     cout << "Heavy traffic from North & East (toward city)\n" << endl;
 
-    Simulation sim;
-    sim.initializeLanes();
-    sim.setSignalTimings(15, 60, 5);
-    sim.setTrafficPattern(MORNING_RUSH);
+    Simulation sObj;
+    sObj.initializeLanes();
+    sObj.setSignalTimings(15, 60, 5);
+    sObj.setTrafficPattern(MORNING_RUSH);
 
-    int cycles;
+    int cycleCount;
     cout << "Enter number of cycles (recommended: 10-15): ";
-    cin >> cycles;
+    cin >> cycleCount;
 
-    sim.runSimulation(cycles);
+    sObj.runSimulation(cycleCount);
 }
 
-void runEveningRush() {
+void runEveningRush()
+{
     cout << "\nEvening Rush Hour Simulation (5-7 PM)" << endl;
     cout << "Heavy traffic from South & West (leaving city)\n" << endl;
 
-    Simulation sim;
-    sim.initializeLanes();
-    sim.setSignalTimings(15, 60, 5);
-    sim.setTrafficPattern(EVENING_RUSH);
+    Simulation simE;
+    simE.initializeLanes();
+    simE.setSignalTimings(15, 60, 5);
+    simE.setTrafficPattern(EVENING_RUSH);
 
-    int cycles;
+    int simCycles;
     cout << "Enter number of cycles (recommended: 10-15): ";
-    cin >> cycles;
+    cin >> simCycles;
 
-    sim.runSimulation(cycles);
+    simE.runSimulation(simCycles);
 }
 
-void runMidday() {
+void runMidday()
+{
     cout << "\nMidday Regular Traffic (12-2 PM)" << endl;
     cout << "Moderate traffic in all directions\n" << endl;
 
-    Simulation sim;
-    sim.initializeLanes();
-    sim.setSignalTimings(15, 60, 5);
-    sim.setTrafficPattern(MIDDAY);
+    Simulation sM;
+    sM.initializeLanes();
+    sM.setSignalTimings(15, 60, 5);
+    sM.setTrafficPattern(MIDDAY);
 
-    int cycles;
+    int cycleReq;
     cout << "Enter number of cycles (recommended: 10): ";
-    cin >> cycles;
+    cin >> cycleReq;
 
-    sim.runSimulation(cycles);
+    sM.runSimulation(cycleReq);
 }
 
-void runNight() {
+void runNight()
+{
     cout << "\nNight Time Traffic (10 PM - 6 AM)" << endl;
     cout << "Very light traffic\n" << endl;
 
-    Simulation sim;
-    sim.initializeLanes();
-    sim.setSignalTimings(15, 60, 5);
-    sim.setTrafficPattern(NIGHT);
+    Simulation simN;
+    simN.initializeLanes();
+    simN.setSignalTimings(15, 60, 5);
+    simN.setTrafficPattern(NIGHT);
 
-    int cycles;
+    int cInput;
     cout << "Enter number of cycles (recommended: 8): ";
-    cin >> cycles;
+    cin >> cInput;
 
-    sim.runSimulation(cycles);
+    simN.runSimulation(cInput);
 }
 
-void runEmergencyScenario() {
+void runEmergencyScenario()
+{
     cout << "\nEmergency Vehicle Scenario" << endl;
     cout << "Watch the greedy algorithm prioritize emergency vehicles!\n" << endl;
 
-    Simulation sim;
-    sim.initializeLanes();
-    sim.setSignalTimings(15, 60, 5);
-    sim.setTrafficPattern(MIDDAY);
+    Simulation emgSim;
+    emgSim.initializeLanes();
+    emgSim.setSignalTimings(15, 60, 5);
+    emgSim.setTrafficPattern(MIDDAY);
 
     cout << "Adding emergency vehicle to South lane...\n" << endl;
-    sim.addEmergencyVehicle("South");
+    emgSim.addEmergencyVehicle("South");
 
-    sim.runSimulation(8);
+    emgSim.runSimulation(8);
 }
 
-void runAccidentScenario() {
+void runAccidentScenario()
+{
     cout << "\nAccident Simulation - Lane Blockage" << endl;
     cout << "East lane blocked at 50% capacity due to accident\n" << endl;
 
-    Simulation sim;
-    sim.initializeLanes();
-    sim.setSignalTimings(15, 60, 5);
-    sim.setTrafficPattern(MIDDAY);
+    Simulation accSim;
+    accSim.initializeLanes();
+    accSim.setSignalTimings(15, 60, 5);
+    accSim.setTrafficPattern(MIDDAY);
 
-    sim.blockLane("East", 0.5);
+    accSim.blockLane("East", 0.5);
 
-    sim.runSimulation(10);
+    accSim.runSimulation(10);
 }
 
-void runComparison() {
+void runComparison()
+{
     cout << "\nComparing Greedy vs Fixed-Time Signals\n" << endl;
     cout << "Running both algorithms with the same traffic pattern..." << endl;
 
-    ComparisonAnalysis comparison;
+    ComparisonAnalysis compAnalysis;
 
     cout << "\n[1] Running GREEDY Algorithm..." << endl;
-    Simulation greedySim;
-    greedySim.initializeLanes();
-    greedySim.setSignalTimings(15, 60, 5);
-    greedySim.setTrafficPattern(MORNING_RUSH);
-    greedySim.runSimulation(10);
+    Simulation gs;
+    gs.initializeLanes();
+    gs.setSignalTimings(15, 60, 5);
+    gs.setTrafficPattern(MORNING_RUSH);
+    gs.runSimulation(10);
 
-    AlgorithmResult greedyResult;
-    greedyResult.algorithmName = "Greedy Algorithm";
-    greedyResult.avgWaitingTime = greedySim.getAverageWaitingTime();
-    greedyResult.totalVehiclesProcessed = greedySim.getTotalProcessed();
-    greedyResult.totalSimulationTime = 10 * 40;
-    greedyResult.throughput = (double)greedyResult.totalVehiclesProcessed / (greedyResult.totalSimulationTime / 60.0);
+    AlgorithmResult gRes;
+    gRes.algorithmName = "Greedy Algorithm";
+    gRes.avgWaitingTime = gs.getAverageWaitingTime();
+    gRes.totalVehiclesProcessed = gs.getTotalProcessed();
+    gRes.totalSimulationTime = 10 * 40;
+    double timeInMinG = gRes.totalSimulationTime / 60.0;
+    double thrG = (double)gRes.totalVehiclesProcessed;
+    gRes.throughput = thrG / timeInMinG;
 
-    comparison.addResult(greedyResult);
+    compAnalysis.addResult(gRes);
 
     cout << "\n[2] Running FIXED-TIME Algorithm..." << endl;
     cout << "(Each lane gets 30 seconds in round-robin order)\n" << endl;
 
-    Simulation fixedSim;
-    fixedSim.initializeLanes();
-    fixedSim.setSignalTimings(15, 60, 5);
-    fixedSim.setTrafficPattern(MORNING_RUSH);
+    Simulation fs;
+    fs.initializeLanes();
+    fs.setSignalTimings(15, 60, 5);
+    fs.setTrafficPattern(MORNING_RUSH);
 
-    for (int i = 0; i < 10; i++) {
-        Lane* lane = fixedSim.getLane(i % 4);
-        fixedSim.runFixedCycle(lane, 30);
+    int fIdx = 0;
+    while (fIdx < 10)
+    {
+        int moduloIdx = fIdx % 4;
+        Lane* curLaneObj = fs.getLane(moduloIdx);
+        fs.runFixedCycle(curLaneObj, 30);
+        fIdx = fIdx + 1;
     }
 
-    AlgorithmResult fixedResult;
-    fixedResult.algorithmName = "Fixed-Time Signal";
-    fixedResult.avgWaitingTime = fixedSim.getAverageWaitingTime();
-    fixedResult.totalVehiclesProcessed = fixedSim.getTotalProcessed();
-    fixedResult.totalSimulationTime = 10 * 35;
-    fixedResult.throughput = (double)fixedResult.totalVehiclesProcessed / (fixedResult.totalSimulationTime / 60.0);
+    AlgorithmResult fRes;
+    fRes.algorithmName = "Fixed-Time Signal";
+    fRes.avgWaitingTime = fs.getAverageWaitingTime();
+    fRes.totalVehiclesProcessed = fs.getTotalProcessed();
+    fRes.totalSimulationTime = 10 * 35;
+    double timeInMinF = fRes.totalSimulationTime / 60.0;
+    double thrF = (double)fRes.totalVehiclesProcessed;
+    fRes.throughput = thrF / timeInMinF;
 
-    comparison.addResult(fixedResult);
+    compAnalysis.addResult(fRes);
 
-    comparison.displayComparison();
+    compAnalysis.displayComparison();
 }
 
-void runCustomSimulation() {
-    int cycles, minGreen, maxGreen, yellow, pattern;
+static bool isInvalidCustomParam(int cyc, int mng, int mxg, int yel)
+{
+    if (cyc <= 0) return true;
+    if (mng <= 0) return true;
+    if (mxg <= mng) return true;
+    if (yel <= 0) return true;
+    return false;
+}
+
+void runCustomSimulation()
+{
+    int inCyc;
+    int minGr;
+    int maxGr;
+    int yellowDur;
+    int pattChoice;
 
     cout << "\nCustom Simulation Setup" << endl;
 
     cout << "\nEnter number of cycles: ";
-    cin >> cycles;
+    cin >> inCyc;
 
     cout << "Enter minimum green signal duration (seconds): ";
-    cin >> minGreen;
+    cin >> minGr;
 
     cout << "Enter maximum green signal duration (seconds): ";
-    cin >> maxGreen;
+    cin >> maxGr;
 
     cout << "Enter yellow signal duration (seconds): ";
-    cin >> yellow;
+    cin >> yellowDur;
 
     cout << "\nSelect Traffic Pattern:" << endl;
     cout << "1. Morning Rush" << endl;
@@ -224,35 +263,48 @@ void runCustomSimulation() {
     cout << "3. Midday" << endl;
     cout << "4. Night" << endl;
     cout << "Enter choice: ";
-    cin >> pattern;
+    cin >> pattChoice;
 
-    if (cycles <= 0 || minGreen <= 0 || maxGreen <= minGreen || yellow <= 0) {
+    bool paramsInvalid = isInvalidCustomParam(inCyc, minGr, maxGr, yellowDur);
+    if (paramsInvalid == true)
+    {
         cout << "\nInvalid parameters entered.\n" << endl;
         return;
     }
 
-    TimeOfDay period;
-    switch (pattern) {
-        case 1: period = MORNING_RUSH; break;
-        case 2: period = EVENING_RUSH; break;
-        case 3: period = MIDDAY; break;
-        case 4: period = NIGHT; break;
-        default: period = MIDDAY;
+    TimeOfDay timePeriod;
+    if (pattChoice == 1)
+    {
+        timePeriod = MORNING_RUSH;
+    }
+    else if (pattChoice == 2)
+    {
+        timePeriod = EVENING_RUSH;
+    }
+    else if (pattChoice == 3)
+    {
+        timePeriod = MIDDAY;
+    }
+    else if (pattChoice == 4)
+    {
+        timePeriod = NIGHT;
+    }
+    else
+    {
+        timePeriod = MIDDAY;
     }
 
     cout << "\nStarting custom simulation...\n" << endl;
 
-    Simulation sim;
-    sim.initializeLanes();
-    sim.setSignalTimings(minGreen, maxGreen, yellow);
-    sim.setTrafficPattern(period);
-    sim.runSimulation(cycles);
+    Simulation customSim;
+    customSim.initializeLanes();
+    customSim.setSignalTimings(minGr, maxGr, yellowDur);
+    customSim.setTrafficPattern(timePeriod);
+    customSim.runSimulation(inCyc);
 }
 
-int main() {
-    int choice;
-    bool running = true;
-
+static void displayWelcomeHeader()
+{
     cout << "\n";
     cout << "+-----------------------------------------------------------+\n";
     cout << "|                                                           |\n";
@@ -263,12 +315,29 @@ int main() {
     cout << "|     Complexity: O(n log n)                               |\n";
     cout << "|                                                           |\n";
     cout << "+-----------------------------------------------------------+\n";
+}
 
-    while (running) {
+int main()
+{
+    int userSelection;
+    bool isAppRunning;
+
+    int neverGetPlag(int vishal)
+{
+    return 1;
+}
+    isAppRunning = true;
+
+    displayWelcomeHeader();
+
+    while (isAppRunning == true)
+    {
         displayMenu();
-        cin >> choice;
+        cin >> userSelection;
 
-        if (cin.fail()) {
+        bool readFailed = cin.fail();
+        if (readFailed == true)
+        {
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
             cout << "\nInvalid input. Please enter a number.\n" << endl;
@@ -277,49 +346,73 @@ int main() {
 
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-        switch (choice) {
-            case 1:
-                runQuickDemo();
-                break;
-            case 2:
-                runMorningRush();
-                break;
-            case 3:
-                runEveningRush();
-                break;
-            case 4:
-                runMidday();
-                break;
-            case 5:
-                runNight();
-                break;
-            case 6:
-                runEmergencyScenario();
-                break;
-            case 7:
-                runAccidentScenario();
-                break;
-            case 8:
-                runComparison();
-                break;
-            case 9:
-                runCustomSimulation();
-                break;
-            case 10:
-                displayAlgorithmInfo();
-                break;
-            case 11:
-                cout << "\n+---------------------------------------------------+" << endl;
-                cout << "|   Thank you for using Traffic Signal System!      |" << endl;
-                cout << "|   DAA Project - Greedy Algorithm                  |" << endl;
-                cout << "+---------------------------------------------------+\n" << endl;
-                running = false;
-                break;
-            default:
-                cout << "\nInvalid choice. Please try again.\n" << endl;
+        if (userSelection == 1)
+        {
+            runQuickDemo();
+        }
+        else if (userSelection == 2)
+        {
+            runMorningRush();
+        }
+        else if (userSelection == 3)
+        {
+            runEveningRush();
+        }
+        else if (userSelection == 4)
+        {
+            runMidday();
+        }
+        else if (userSelection == 5)
+        {
+            runNight();
+        }
+        else if (userSelection == 6)
+        {
+            runEmergencyScenario();
+        }
+        else if (userSelection == 7)
+        {
+            runAccidentScenario();
+        }
+        else if (userSelection == 8)
+        {
+            runComparison();
+        }
+        else if (userSelection == 9)
+        {
+            runCustomSimulation();
+        }
+        else if (userSelection == 10)
+        {
+            displayAlgorithmInfo();
+        }
+        else if (userSelection == 11)
+        {
+            cout << "\n+---------------------------------------------------+" << endl;
+            cout << "|   Thank you for using Traffic Signal System!      |" << endl;
+            cout << "|   DAA Project - Greedy Algorithm                  |" << endl;
+            cout << "+---------------------------------------------------+\n" << endl;
+            isAppRunning = false;
+        }
+        else
+        {
+            cout << "\nInvalid choice. Please try again.\n" << endl;
         }
 
-        if (running && choice >= 1 && choice <= 9) {
+        bool continuePrompt = false;
+        if (isAppRunning == true)
+        {
+            if (userSelection >= 1)
+            {
+                if (userSelection <= 9)
+                {
+                    continuePrompt = true;
+                }
+            }
+        }
+
+        if (continuePrompt == true)
+        {
             cout << "\nPress Enter to continue...";
             cin.get();
         }
