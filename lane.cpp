@@ -2,35 +2,46 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+static bool laneQueueIsEmpty(const queue<Vehicle>& q)
+{
+    if (q.empty() == true)
+    {
+        return true;
+    }
+    return false;
+}
+
 Lane::Lane(string name, int cap)
 {
     laneName = name;
     capacity = cap;
     totalVehicles = 0;
-    totalWaitingTime = 0;
+    accumulatedWaitTime = 0;
     blocked = false;
     blockagePercent = 0.0;
 }
 
 void Lane::addVehicle(const Vehicle& v)
 {
-    if (isFull())
+    bool laneAtCapacity = isFull();
+    if (laneAtCapacity == true)
     {
         cout << "Lane " << laneName << " is full. Cannot add vehicle " << v.getVehicleID() << endl;
         return;
     }
     vehicleQueue.push(v);
-    totalVehicles++;
+    totalVehicles = totalVehicles + 1;
 }
 
 Vehicle Lane::removeVehicle()
 {
-    if(!isEmpty())
+    bool laneNotEmpty = isEmpty();
+    if (laneNotEmpty == false)
     {
-        Vehicle v = vehicleQueue.front();
+        Vehicle frontVehicle = vehicleQueue.front();
         vehicleQueue.pop();
-        totalVehicles--;
-        return v;
+        totalVehicles = totalVehicles - 1;
+        return frontVehicle;
     }
     else
     {
@@ -40,36 +51,44 @@ Vehicle Lane::removeVehicle()
 
 int Lane::getVehicleCount() const
 {
-    return vehicleQueue.size();
+    int count = vehicleQueue.size();
+    return count;
 }
 
 bool Lane::hasEmergencyVehicle() const
 {
-    queue<Vehicle> tempQueue = vehicleQueue;
-    while (!tempQueue.empty())
+    queue<Vehicle> scanQueue = vehicleQueue;
+    while (scanQueue.empty() == false)
     {
-        if (tempQueue.front().isEmergency())
+        bool frontIsEmergency = scanQueue.front().isEmergency();
+        if (frontIsEmergency == true)
+        {
             return true;
-        tempQueue.pop();
+        }
+        scanQueue.pop();
     }
     return false;
 }
 
 void Lane::updateAllWaitingTimes(int currentTime)
 {
-    totalWaitingTime += getVehicleCount();
+    int presentCount = getVehicleCount();
+    accumulatedWaitTime = accumulatedWaitTime + presentCount;
 }
 
 int Lane::getTotalWaitingTime() const
 {
-    return totalWaitingTime;
+    return accumulatedWaitTime;
 }
 
 int Lane::getAverageWaitingTime() const
 {
     if (totalVehicles == 0)
+    {
         return 0;
-    return totalWaitingTime / totalVehicles;
+    }
+    int avgWait = accumulatedWaitTime / totalVehicles;
+    return avgWait;
 }
 
 double Lane::calculatePriority() const
@@ -78,21 +97,41 @@ double Lane::calculatePriority() const
     int avgWaitingTime = getAverageWaitingTime();
     int effectiveCapacity = getEffectiveCapacity();
 
-    if(effectiveCapacity == 0)
+    if (effectiveCapacity == 0)
+    {
         return 0.0;
-    
-    if(hasEmergencyVehicle())
-        return 999999.0;
+    }
 
-    return (double)(vehicleCount * avgWaitingTime) / effectiveCapacity;
+    bool emergencyPresent = hasEmergencyVehicle();
+    if (emergencyPresent == true)
+    {
+        return 999999.0;
+    }
+
+    double numerator = (double)(vehicleCount * avgWaitingTime);
+    double priorityScore = numerator / effectiveCapacity;
+    return priorityScore;
 }
 
 void Lane::setBlockage(double percent)
 {
-    if (percent < 0.0) percent = 0.0;
-    if (percent > 1.0) percent = 1.0;
+    if (percent < 0.0)
+    {
+        percent = 0.0;
+    }
+    if (percent > 1.0)
+    {
+        percent = 1.0;
+    }
     blockagePercent = percent;
-    blocked = (percent > 0.0);
+    if (percent > 0.0)
+    {
+        blocked = true;
+    }
+    else
+    {
+        blocked = false;
+    }
 }
 
 bool Lane::isBlocked() const
@@ -102,8 +141,10 @@ bool Lane::isBlocked() const
 
 int Lane::getEffectiveCapacity() const
 {
-    int eff = static_cast<int>(capacity * (1.0 - blockagePercent));
-    return std::max(0, eff);
+    double reducedRatio = 1.0 - blockagePercent;
+    int effectiveCap = static_cast<int>(capacity * reducedRatio);
+    int result = std::max(0, effectiveCap);
+    return result;
 }
 
 string Lane::getLaneName() const
@@ -113,18 +154,37 @@ string Lane::getLaneName() const
 
 void Lane::displayLaneStatus() const
 {
-    cout << "Lane " << laneName << " status: " << (blocked ? "Blocked" : "Open")
-         << ", vehicles=" << getVehicleCount()
-         << ", effective capacity=" << getEffectiveCapacity()
-         << ", avg waiting=" << getAverageWaitingTime() << endl;
+    string blockedLabel;
+    if (blocked == true)
+    {
+        blockedLabel = "Blocked";
+    }
+    else
+    {
+        blockedLabel = "Open";
+    }
+    int currentCount = getVehicleCount();
+    int effectiveCap = getEffectiveCapacity();
+    int avgWait = getAverageWaitingTime();
+    cout << "Lane " << laneName << " status: " << blockedLabel
+         << ", vehicles=" << currentCount
+         << ", effective capacity=" << effectiveCap
+         << ", avg waiting=" << avgWait << endl;
 }
 
 bool Lane::isEmpty() const
 {
-    return vehicleQueue.empty();
+    bool result = vehicleQueue.empty();
+    return result;
 }
 
 bool Lane::isFull() const
 {
-    return getVehicleCount() >= getEffectiveCapacity();
+    int presentCount = getVehicleCount();
+    int effectiveCap = getEffectiveCapacity();
+    if (presentCount >= effectiveCap)
+    {
+        return true;
+    }
+    return false;
 }
