@@ -12,30 +12,30 @@ private:
     string laneName;
     queue<Vehicle> vehicleQueue;
     int totalVehicles;
-    int totalWaitingTime;
+    int accumulatedWaitTime;
     int capacity;
     bool blocked;
     double blockagePercent;
-    
+
 public:
     Lane(string name, int cap = 50);
-    
+
     void addVehicle(const Vehicle& v);
     Vehicle removeVehicle();
     int getVehicleCount() const;
-    
+
     bool hasEmergencyVehicle() const;
-    
+
     void updateAllWaitingTimes(int currentTime);
     int getTotalWaitingTime() const;
     int getAverageWaitingTime() const;
-    
+
     double calculatePriority() const;
-    
+
     void setBlockage(double percent);
     bool isBlocked() const;
     int getEffectiveCapacity() const;
-    
+
     string getLaneName() const;
     void displayLaneStatus() const;
     bool isEmpty() const;
