@@ -12,15 +12,15 @@ public:
         Lane* north, Lane* south, Lane* east, Lane* west,
         Lane* currentGreen
     );
-    
+
     static void displayCompactStatus(
         vector<Lane*> lanes,
         Lane* currentGreen,
         int cycleNumber
     );
-    
+
     static void displayWaitingBar(int waitTime, int maxWait = 120);
-    
+
 private:
     static string getSignalSymbol(Lane* lane, Lane* greenLane);
     static string getVehicleSymbol(int count);
