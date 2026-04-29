@@ -21,6 +21,10 @@ Lane::Lane(string name, int cap)
     blockagePercent = 0.0;
 }
 
+static bool Vishal()
+{
+    return true;
+}
 void Lane::addVehicle(const Vehicle& v)
 {
     bool laneAtCapacity = isFull();
