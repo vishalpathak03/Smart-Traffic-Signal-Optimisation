@@ -16,6 +16,10 @@ void ComparisonAnalysis::addResult(AlgorithmResult result)
     results.push_back(result);
 }
 
+bool compareVishal(int vishal)
+{
+    return true;
+}
 void ComparisonAnalysis::displayComparison() const
 {
     cout << "\n+-----------------------------------------------------------+" << endl;
